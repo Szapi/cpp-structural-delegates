@@ -347,4 +347,25 @@ At runtime, we can swap implementations behind a stable façade, similar to virt
 
 We can inject fake or mock implementations simply by passing an object with the right shape — no need for explicit inheritance to make a mock interface.
 
-_To be continued..._
+## When do delegates make sense?
+Delegates could be used wherever we would pass a concrete, non-polymorphic class as reference, to a method or class constructor, to be used through its public interface, and object lifetimes are not a concern.
+They could shine for decoupling code within a single code module, and could be used immediately to start removing overgrown dependencies in existing codebases, and allow previously un-unittestable classes to be tested.
+In turn, this may help coders spot missing abstractions that should have been there to begin with, and perhaps ditch delegates for inheritance.
+
+Delegates are not meant to replace inheritance or other means of structuring code.
+There are many situations where existing language tools are better suited for the task.
+
+## Sanity Check: Can delegates be explained to new and seasoned C++ programmers easily?
+
+I would say yes.
+It's duck typing without templates.
+Many other programming languages (e.g. Python) employ duck typing.
+Method calls on a delegate are forwarded to an underlying object that supports the same public methods.
+They work just like a reference to a base class with virtual methods.
+One only needs to specify an interface with named methods, just like a class declaration.
+For safety reasons, we must state explicitly somewhere in the code that a class was meant to be compatible with a delegate, which is equivalent to inheriting a base class with virtual methods.
+A delegate points to an underlying object, just like pointers or references, therefore the lifetime implications are similar.
+Delegates must be predeclared or included from a header, just like classes and structs.
+
+I think structural delegates should not be much more complicated than what was presented.
+Simple named method forwarding would already be very powerful, without introducing too much complexity to an already complex language. They should be easy to use. They are not a silver bullet, just another tool in the toolbox of a C++ programmer.
