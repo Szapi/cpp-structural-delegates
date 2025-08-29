@@ -237,7 +237,7 @@ The delegate itself is a simple inline class, with type erasure, and an 'ad-hoc 
 class configs_delegate final
 {
 public:
-    // Same set of named method
+    // Same set of named methods
     int max_connections() const;
     int conn_timeout_ms() const;
 
@@ -280,7 +280,7 @@ inline Ret configs_delegate::foo(const P1& p1, const P2* p2) noexcept
 How the function table can be filled when constructing a delegate:
 ```cpp
 template<class T> requires configs_delegate_concept<T>
-consteval FnTable make_fn_table_for()
+consteval fn_table make_fn_table_for()
 {
     struct Invoker
     {
@@ -288,7 +288,7 @@ consteval FnTable make_fn_table_for()
         ...
     };
 
-    return FnTable {
+    return fn_table {
         .max_connections = std::make_tuple(&Invoker::max_connections),
         ...
     };
@@ -346,7 +346,7 @@ template<> constexpr bool allow_delegate_bind<my_delegate, my_class> = true;
 void work()
 {
     my_class callbacks;
-    do_work(delegate_cast<my_delegate>(callbacks); // OK
+    do_work(delegate_cast<my_delegate>(callbacks)); // OK
 }
 ```
 
@@ -381,7 +381,7 @@ This makes it easier to unit test, mock, or isolate concerns.
 #### Runtime Flexibility with Compile-time Guarantees
 
 Still a statically typed language: compiler can enforce strict type safety and generate the 'glue code' for us, reducing boilerplate and prevent bugs.
-At runtime, we can swap implementations behind a stable facade, similar to virtual interfaces, but without forcing classes to commit to inheritance.
+At runtime, we can swap implementations behind a stable facade if needed, similar to virtual interfaces, but without forcing classes to commit to inheritance.
 
 #### Testing and Dependency Injection
 
@@ -390,6 +390,7 @@ We can inject fake or mock implementations simply by passing an object with the 
 ## When do delegates make sense?
 Delegates could be used wherever we would pass a concrete, non-polymorphic class as reference, to a method or class constructor, to be used through its public interface, and object lifetimes are not a concern.
 They could shine for decoupling code within a single code module, and could be used immediately to start removing overgrown dependencies in existing codebases, and allow previously un-unittestable classes to be tested.
+They would be well suited for already high-level classes that don't do data crunching themselves, but are responsible for high-level control flows and instrumentation.
 Delegates are non-intrusive, quick to prototype and put to use.
 Using delegates may help us spot missing abstractions that should have been there to begin with, and perhaps ditch delegates for inheritance or other solutions.
 
