@@ -191,7 +191,7 @@ delegate configs_delegate
 ```
 
 From this delegate definition, the compiler could automatically generate:
- - a C++ 20 concept that checks if a class's public interface is compatible with the delegate (has the same set of named methods)
+ - a C++ 20 concept that checks if a class' public interface is compatible with the delegate (has the same set of named methods)
  - a class definition (the actual delegate) that has the same public interface, can bind to compatible classes that, and forward the method calls to the underlying object.
 
 The delegate class should be
