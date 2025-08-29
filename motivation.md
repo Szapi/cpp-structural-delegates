@@ -298,7 +298,7 @@ consteval fn_table make_fn_table_for()
 Delegate binding must be explicitly stated, e.g.
 ```cpp
 component_configs configs;
-auto del = delegate_cast<configs_delegate>(communication_configs);
+auto del = delegate_cast<configs_delegate>(configs);
 ```
 
 Let us address some early concerns regarding the delegates.
