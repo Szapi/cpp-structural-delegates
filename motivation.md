@@ -76,7 +76,7 @@ struct communication_configs
     ...
 };
 ```
-This would also violate the open-closed principle.
+This may also violate the open-closed principle again.
 
 We could just keep the original class, and then copy all necessary settings into a temporary struct, and pass that to methods when needed, but this also requires at least some boilerplate...
 
@@ -99,7 +99,7 @@ Templates can do exactly what we are looking for, however, their use for this ki
 template<class component_configs_t>
 void do_something(const component_configs_t& configs, ...)
 {
-    // Only a handful of methods are required for component_configs_t.
+    // Only a handful of methods are required for component_configs_t
     const int timeout = configs.conn_timeout_ms();
     const int port    = configs.conn_port();
     ...
@@ -161,7 +161,7 @@ delegate communication_configs
     ...
 
     // No access specifiers.
-    // No constructors, member variables, operators, etc. are allowed.
+    // No constructors, member variables, operators, etc. are allowed (for now)
 };
 ```
 
