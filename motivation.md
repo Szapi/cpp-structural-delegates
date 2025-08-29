@@ -313,6 +313,13 @@ void work()
 }
 ```
 
+#### Indirect Call Overhead
+Function-pointer indirection is essentially equivalent to a vtable call.
+Compared to templates or using concrete types, we lose inlining opportunities, unless LTO catches them.
+
+However, this overhead is no worse than regular virtual dispatch, and I would argue that in many cases the benefits would greatly outweigh the cost.
+Besides, delegates are purely optional.
+
 #### Possible object lifetime issues
 The exact same concerns already apply to references, so there's nothing new here.
 Delegates are not meant to manage the lifetime of the underlying object, they should behave just like references. If lifetime management is needed, it should be done with conventional methods.
@@ -321,5 +328,23 @@ Delegates are not meant to manage the lifetime of the underlying object, they sh
 The exact same concerns already apply to regular polymorphic objects passed as pointer-to-base (e.g. DLL of the underlying object is unloaded early). Delegates are not primarily meant to be long-lived or passed between code modules, they are best used within a single module, in a closed ecosystem, though they do open up possibilities for libraries. Further consideration is needed.
 
 ### Benefits of Delegates
+
+#### Subtyping Without Inheritance
+Classes don’t need to declare “I implement `i_foo`” in advance. If they just happen to have the right methods, we can make a delegate from them.
+This enables retrofitting interfaces onto existing classes, which ties nicely into the open/closed principle.
+Consumers don’t force producers to change their inheritance tree. The system can be extended with new views/interfaces without modifying the original types.
+
+#### Interface Subdivision (Granularity)
+Consumers only need to declare a subset of methods they care about (e.g. `communication_configs` vs. the 100-method `component_configs` object).
+This makes it easier to unit test, mock, or isolate concerns.
+
+#### Runtime Flexibility with Compile-time Guarantees
+
+Still a statically typed language: compiler can enforce strict type safety and generate the 'glue code' for us, reducing boilerplate.
+At runtime, we can swap implementations behind a stable façade, similar to virtual interfaces, but without forcing classes to commit to inheritance.
+
+#### Testing and Dependency Injection
+
+We can inject fake or mock implementations simply by passing an object with the right shape — no need for explicit inheritance to make a mock interface.
 
 _To be continued..._
