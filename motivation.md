@@ -141,7 +141,7 @@ template<
     class offline_backup_strategy_t,
     class mutex_t,
     ...
-    // These types were previously hard-wired, and lack polymorphism support for e.g. testing.
+    // These types were previously hard-wired, and lack proper polymorphism support.
     // Will only ever be instantiated with a single set of types in production code,
     // but cannot be unittested otherwise...
 >
