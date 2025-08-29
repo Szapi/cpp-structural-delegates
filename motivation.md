@@ -410,6 +410,7 @@ A delegate points to an underlying object, just like pointers or references, the
 Delegates must be predeclared or included from a header, just like classes and structs.
 
 The delegate system should not be much more complicated than what was presented.
+They should be simple to use.
 Simple named method forwarding would already be very powerful, without introducing too much complexity to an already complex language.
 
-I believe they would fill a real gap in the language. They should be easy to use. They are not a silver bullet, just another tool in the toolbox of C++.
+I believe it would fill a real gap in C++. They are not a silver bullet, just another tool in the toolbox of the programmer.
