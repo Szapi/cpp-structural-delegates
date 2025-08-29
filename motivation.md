@@ -100,7 +100,6 @@ template<class component_configs_t>
 void do_something(const component_configs_t& configs, ...)
 {
     // Only a handful of methods are required for component_configs_t.
-    // Easy to test, existing code structure can be retained.
     const int timeout = configs.conn_timeout_ms();
     const int port    = configs.conn_port();
     ...
@@ -119,7 +118,7 @@ template<
     ...
     // These types were previously hard-wired, and lack polymorphism support for e.g. testing.
     // Will only ever be instantiated with a single set of types in production code,
-    // but cannot be tested otherwise...
+    // but cannot be unittested otherwise...
 >
 class storage_administrator
 {
@@ -158,7 +157,7 @@ delegate communication_configs
     // Ret, P1, P2 are concrete types.
     [[nodiscard]] Ret foo(const P1& p1, const P2* p2 = nullptr) noexcept;
     // Overloaded functions are OK
-    [[nodiscard]] void foo(int a, int b, double d);
+    void foo(int a, int b, double d);
     ...
 
     // No access specifiers.
@@ -184,20 +183,20 @@ This is already doable with existing C++ features, altough each delegate class m
 The generated concept would be equivalent to this:
 ```cpp
 template<class T>
-concept communication_configs = requires(T& mut, const T& cnst)
+concept communication_configs_concept = requires(T& mut, const T& cnst)
 {
     // max_connections()
     { cnst.max_connections() } -> std::same_as<int>;      // Check if max_connections is a public method
     static_cast<int (T::*)() const>(&T::max_connections); // Check the exact signature
 
-    // Ret foo(const P1& p1, const P2* p2 = nullptr) noexcept
+    // Ret foo(const P1&, const P2* p2) noexcept
     requires requires (const P1& p1, const P2* p2)
     {
         { mut.foo(p1, p2) } -> std::same_as<Ret>;
     };
     static_cast<Ret (T::*)(const P1&, const P2*) noexcept>(&T::foo);
 
-    // void foo(int a, int b, double d)
+    // void foo(int, int, double)
     requires requires (int a, int b, double d)
     {
         mut.foo(a, b, d);
@@ -210,14 +209,14 @@ concept communication_configs = requires(T& mut, const T& cnst)
 The delegate itself is a simple, inline class, with type erasure, and a 'retrofitted' function table:
 
 ```cpp
-class communication_configs final
+class communication_configs_delegate final
 {
 public:
     int max_connections() const;
     int conn_timeout_ms() const;
 
     [[nodiscard]] Ret foo(const P1& p1, const P2* p2 = nullptr) noexcept;
-    [[nodiscard]] void foo(int a, int b, double d);
+    void foo(int a, int b, double d);
     ...
 
 private:
@@ -242,7 +241,7 @@ private:
 };
 
 // Function implementations
-inline Ret communication_configs::foo(const P1& p1, const P2* p2) noexcept
+inline Ret communication_configs_delegate::foo(const P1& p1, const P2* p2) noexcept
 {
     return std::get<
         Ret (*)(void*,const P1&,const P2*) noexcept // Choose the correct signature
@@ -253,8 +252,8 @@ inline Ret communication_configs::foo(const P1& p1, const P2* p2) noexcept
 
 How the function table can be filled when constructing a delegate:
 ```cpp
-template<class T> requires *communication_configs concept* <T>
-consteval FnTable MakeFnTableFor()
+template<class T> requires communication_configs_concept<T>
+consteval FnTable MakeFnTable()
 {
     struct Invoker
     {
