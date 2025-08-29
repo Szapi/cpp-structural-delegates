@@ -316,11 +316,11 @@ If this were a single compilation unit, the following code should result in a co
 ```cpp
 delegate my_delegate { ... };
 
-// Suppose that my_class is compatible with my_delegate
-class my_class { ... };
+// Suppose that my_callbacks is compatible with my_delegate
+class my_callbacks { ... };
 
-my_class underlying;
-auto del = delegate_cast<my_delegate>(underlying); // Error: my_delegate is not allowed to bind to an instance of my_class& without permit
+my_callbacks callbacks;
+auto del = delegate_cast<my_delegate>(callbacks); // Error: my_delegate is not allowed to bind to an instance of my_callbacks& without permit
 ```
 
 How we might achieve this with existing C++ constructs (again, imagine that the following code block is a single compilation unit):
@@ -339,13 +339,13 @@ void do_work(my_delegate callback);
 // Contents of .cpp
 
 // TODO: Come up with syntax for this
-// State explicitly that my_class was intended to bind to a my_delegate
+// State explicitly that my_callbacks was intended to bind to a my_delegate
 // Notice: This can be done retroactively without the delegate or the class having to know about each other
-template<> constexpr bool allow_delegate_bind<my_delegate, my_class> = true;
+template<> constexpr bool allow_delegate_bind<my_delegate, my_callbacks> = true;
 
 void work()
 {
-    my_class callbacks;
+    my_callbacks callbacks;
     do_work(delegate_cast<my_delegate>(callbacks)); // OK
 }
 ```
