@@ -206,7 +206,7 @@ concept communication_configs_concept = requires(T& mut, const T& cnst)
 ```
 
 #### Delegate Class
-The delegate itself is a simple, inline class, with type erasure, and a 'retrofitted' function table:
+The delegate itself is a simple, inline class, with type erasure, and an 'ad-hoc function table':
 
 ```cpp
 class communication_configs_delegate final
@@ -219,6 +219,7 @@ public:
     void foo(int a, int b, double d);
     ...
 
+    // No public constructor for binding, explained shortly...
 private:
     struct FnTable
     {
@@ -267,5 +268,58 @@ consteval FnTable MakeFnTable()
     };
 }
 ```
+
+Delegate binding must be explicitly stated, e.g.
+```cpp
+communication_configs configs;
+auto del = delegate_cast<communication_configs_delegate>(communication_configs);
+```
+
+Let us address some early concerns regarding the delegates.
+
+#### Possible loss of strong nominal contracts (proof-of-intention)
+
+Nominal typing gives explicitness: we can see in the class definition which interfaces it intends to support (it derives from them explicitly, overrides virtual methods).
+
+Structural typing by delegate means it’s easier to silently mismatch semantics: just because a class has `draw(canvas&)` doesn’t mean it’s meaningful as a `renderable`.
+
+Solution: explicit opt-in for delegation as a proof-of-intention.
+Imagine the following code block as if it was a compilation unit:
+```cpp
+// Implicitly 'assumed' by the compiler
+template<class delegate, class underlying>
+constexpr bool allow_delegate_bind = false;
+
+// Included from one header
+// Notice: my_class doesn't necessarily need to know about my_delegate to be compatible
+class my_callbacks { ... }
+
+// Included from another header
+delegate my_delegate { ... };
+void do_work(my_delegate callback);
+
+// Contents of .cpp
+
+// TODO: Come up with syntax for these
+// State explicitly that my_class was intended to be bound to a my_delegate
+// Notice: This can be done 'retroactively' without the delegate or the class having to know about each other
+static_assert(my_delegate_concept<my_class>);
+template<> constexpr bool allow_delegate_bind<my_delegate, my_class> = true;
+
+void work()
+{
+    my_class callbacks;
+    do_work(delegate_cast<my_delegate>(callbacks);
+}
+```
+
+#### Possible object lifetime issues
+The exact same concerns already apply to references, so there's nothing new here.
+Delegates are not meant to manage the lifetime of the underlying object, they should behave just like references. If lifetime management is needed, it should be done with conventional methods.
+
+#### Passing delegates through ABI boundaries
+The exact same concerns already apply to regular polymorphic objects passed as pointer-to-base (e.g. DLL of the underlying object is unloaded early). Delegates are not primarily meant to be long-lived or passed between code modules, they are best used within a single module, in a closed ecosystem, though they do open up possibilities for libraries. Further consideration is needed.
+
+### Benefits of Delegates
 
 _To be continued..._
